@@ -48,14 +48,12 @@ const EditBlogPage = () => {
     onSubmit: async (values) => {
       const endpoint = id ? `/${id}` : '/';
       const method = id ? 'PUT' : 'POST';
-      const header = {
-        token: cookies.token
-    }
+      const token = cookies.token
       try {
         const response = await apiRequest({
           endpoint,
           method,
-          header,
+          token,
           body: values,
         });
 

@@ -55,7 +55,7 @@ export default function Home() {
                 {blogs ? (
                     blogs.map((blog) => (
                         <div
-                            key={blog.id}
+                            key={blog._id}
                             className="bg-white p-6 rounded-lg shadow-md mb-9"
                         >
                             <h2 className="text-2xl font-bold text-teal-600 mb-2">
@@ -66,7 +66,7 @@ export default function Home() {
                             {role === "admin" && (
                                 <div className="flex justify-end space-x-4">
                                     <button
-                                        onClick={() => handleEditBlog(blog.id)}
+                                        onClick={() => handleEditBlog(blog._id)}
                                         className="text-teal-600 hover:text-teal-800"
                                     >
                                         <FaEdit className="inline-block mr-2" />{" "}
@@ -74,7 +74,7 @@ export default function Home() {
                                     </button>
                                     <button
                                         onClick={() =>
-                                            handleDeleteBlog(blog.id)
+                                            handleDeleteBlog(blog._id)
                                         }
                                         className="text-red-600 hover:text-red-800"
                                     >
