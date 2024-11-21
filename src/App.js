@@ -4,18 +4,18 @@ import Signup from './Components/Signup';
 import Home from './Components/Home';
 import EditBlogPage from './Components/EdiBlog';
 import './App.css';
+import Navbar from './Components/Navbar';
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<><Navbar/><Home /></>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/add" element={<EditBlogPage />} />
-          <Route path="/edit/:id" element={<EditBlogPage />} />
-          {/* <Route path="/post" element={<UserPost />} /> */}
+          <Route path="/add" element={<><Navbar /><EditBlogPage /></>} />
+          <Route path="/edit/:id" element={<><Navbar /><EditBlogPage /></>} />
         </Routes>
       </BrowserRouter>
     </div>

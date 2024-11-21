@@ -1,77 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { apiRequest } from "../Utils/fetchApi";
 
 export default function Home() {
-  const [blogs, setBlogs] = useState([]);
-  const [role, setRole] = useState('');
+    const navigate = useNavigate();
+    const [blogs, setBlogs] = useState([]);
+    const [role, setRole] = useState("");
+    const [cookies, setCookie, removeCookie] = useCookies(["role"]);
 
-  useEffect(() => {
-    // fetchBlogs();
-    setBlogs([
-        {
-          "id": 1,
-          "title": "My First Blog",
-          "content": "This is the content of my first blog post."
-        },
-        {
-          "id": 2,
-          "title": "Another Blog Post",
-          "content": "Here is some more content for the second blog post."
+    useEffect(() => {
+        if (!cookies.role || !cookies.token) {
+            navigate('/login');
         }
-      ]
-      )
-  }, []);
+        fetchBlogs();
+        setRole(cookies.role);
+    }, []);
 
-  const fetchBlogs = async () => {
-    const response = await fetch('http://localhost:5000/api/blogs');
-    const data = await response.json();
-    setBlogs(data);
-  };
+    const fetchBlogs = async () => {
+        try {
+            const response = await apiRequest({
+                endpoint: "/",
+                method: "GET",
+            });
+            console.log('Response blogs', response.data)
+            setBlogs(response.data);
+        } catch (error) {
+            console.error("Error fetching blogs:", error);
+        }
+    };
 
-  const handleDeleteBlog = (id) => {
-    console.log(`Delete blog with ID: ${id}`);
-  };
+    const handleDeleteBlog = async (id) => {
+        console.log(`Delete blog with ID: ${id}`);
+        try {
+            const response = await apiRequest({
+                endpoint: `/${id}`,
+                method: "DELETE",
+            });
+            console.log("Blog deleted:", response.data);
+        } catch (error) {
+            console.error("Error deleting blog:", error);
+        }
+    };
 
-  const handleEditBlog = (id) => {
-    console.log(`Edit blog with ID: ${id}`);
-  };
+    const handleEditBlog = (id) => {
+        console.log(`Edit blog with ID: ${id}`);
+        navigate(`/edit/${id}`);
+    };
 
-  return (
-    <div className="max-w-4xl mx-auto my-6">
-      {role === 'admin' && (
-        <Link to="/add-blog">
-          <button className="bg-teal-600 text-white font-medium py-2 px-4 rounded-md hover:bg-teal-700 mb-6">
-            Add Blog
-          </button>
-        </Link>
-      )}
+    return (
+        <div className="max-w-4xl mx-auto my-6">
+            <div>
+                {blogs ? (
+                    blogs.map((blog) => (
+                        <div
+                            key={blog.id}
+                            className="bg-white p-6 rounded-lg shadow-md mb-9"
+                        >
+                            <h2 className="text-2xl font-bold text-teal-600 mb-2">
+                                {blog.title}
+                            </h2>
+                            <p className="text-gray-700 mb-4">{blog.content}</p>
 
-      <div>
-      {blogs.map((blog) => (
-          <div key={blog.id} className="bg-white p-6 rounded-lg shadow-md mb-9">
-            <h2 className="text-2xl font-bold text-teal-600 mb-2">{blog.title}</h2>
-            <p className="text-gray-700 mb-4">{blog.content}</p>
-
-            {role === 'admin' && (
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => handleEditBlog(blog.id)}
-                  className="text-teal-600 hover:text-teal-800"
-                >
-                  <FaEdit className="inline-block mr-2" /> Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteBlog(blog.id)}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <FaTrashAlt className="inline-block mr-2" /> Delete
-                </button>
-              </div>
+                            {role === "admin" && (
+                                <div className="flex justify-end space-x-4">
+                                    <button
+                                        onClick={() => handleEditBlog(blog.id)}
+                                        className="text-teal-600 hover:text-teal-800"
+                                    >
+                                        <FaEdit className="inline-block mr-2" />{" "}
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() =>
+                                            handleDeleteBlog(blog.id)
+                                        }
+                                        className="text-red-600 hover:text-red-800"
+                                    >
+                                        <FaTrashAlt className="inline-block mr-2" />{" "}
+                                        Delete
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <div>
+                        <div className="text-xl italic text-teal-500 font-bold font-mono">
+                            Nothing on site yet
+                        </div>
+                        {role === "admin" ? (
+                            <div className="text-xl italic text-teal-500 font-bold font-mono">
+                                Click on Add BLog to add Bl.ogs
+                            </div>
+                        ) : (
+                            <></>
+                        )}
+                    </div>
+                )}
+            </div>
+            {role === "admin" && (
+                <Link to="/add">
+                    <button className="bg-teal-600 text-white font-medium py-2 px-4 rounded-md hover:bg-teal-700 my-6">
+                        Add Blog
+                    </button>
+                </Link>
             )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        </div>
+    );
 }

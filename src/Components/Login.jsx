@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCookies } from "react-cookie";
 import CryptoJS from "crypto-js";
 import { useFormik } from 'formik';
+import { apiRequest } from '../Utils/fetchApi';
 import * as Yup from 'yup';
 
 export default function Login() {
@@ -17,32 +18,35 @@ export default function Login() {
     },
     validationSchema: Yup.object({
       username: Yup.string()
-        .min(5, 'Username must be at least 3 characters')
+        .min(5, 'Username must be at least 5 characters')
         .required('Username is required'),
       password: Yup.string().required('Password is required'),
     }),
     onSubmit: async (values) => {
-      const secretKey = "ProudTo_Be@Pakistani";
-      const encryptedPassword = CryptoJS.AES.encrypt(values.password, secretKey).toString();
-
-      try {
-        const response = await fetch('http://localhost:5000/api/users/login', {
+        const encryptedPassword = CryptoJS.AES.encrypt(values.password, "ProudTo_Be@Pakistani").toString(); // Encrypt password
+        
+        const response = await apiRequest({
+          endpoint: '/login',
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: values.username, password: encryptedPassword }),
+          body: {
+            username: values.username,
+            password: encryptedPassword,
+          },
         });
-        const data = await response.json();
+    
+        if (response.success) {
+          if (response.data === "Try To Login Again") {
+            setLogerror('Invalid credentials. Please try again.');
+          } else {
+            console.log('Login successful:', response);
+            setCookie('token', response.data.token, { path: '/' });
+            setCookie('role', response.data.role, { path: '/' });
 
-        if (data === "Try To Login Again") {
-          setLogerror('Invalid credentials. Please try again.');
+            navigate('/');
+          }
         } else {
-          setCookie("token", data, { path: "/" });
-          navigate('/');
+          setLogerror(response.error || 'An error occurred. Please try again.');
         }
-      } catch (error) {
-        console.error('Error sending data:', error);
-        setLogerror('An error occurred. Please try again later.');
-      }
     },
   });
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
+import { apiRequest } from '../Utils/fetchApi';
 import * as Yup from 'yup';
 
 export default function Signup() {
@@ -15,37 +16,33 @@ export default function Signup() {
     },
     validationSchema: Yup.object({
       username: Yup.string()
-        .min(3, 'Username must be at least 3 characters')
+        .min(5, 'Username must be at least 5 characters')
         .required('Username is required'),
       password: Yup.string()
         .min(6, 'Password must be at least 6 characters')
         .required('Password is required'),
       role: Yup.string()
-        .oneOf(['user', 'admin'], 'Invalid role') // Adjust roles as needed
+        .oneOf(['user', 'admin'], 'Invalid role')
         .required('Role is required'),
     }),
     onSubmit: async (values) => {
-      try {
-        const response = await fetch('http://localhost:5000/api/users/signup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        });
-
-        const data = await response.json();
-        if (data === "Try To Login Again") {
-          setLogerror('Signup failed. Please try again.');
-        } else {
-          console.log('Signup successful:', data);
-          setLogerror('');
-          navigate('/login');
+        const response = await apiRequest({
+            endpoint: '/register',
+            method: 'POST',
+            body: values,
+          });
+    
+          if (response.success) {
+            if (response.data === 'Try To Signup Again') {
+              setLogerror('Signup failed. Please try again.');
+            } else {
+              console.log('Signup successful:', response.data);
+              setLogerror('');
+              navigate('/login');
+            }
+          } else {
+            setLogerror('An error occurred. Please try again later.');
         }
-      } catch (error) {
-        console.error('Error during signup:', error);
-        setLogerror('An error occurred. Please try again later.');
-      }
     },
   });
 

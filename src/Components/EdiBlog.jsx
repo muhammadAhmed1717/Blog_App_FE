@@ -1,63 +1,71 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useCookies } from 'react-cookie';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { apiRequest } from '../Utils/fetchApi';
 
 const EditBlogPage = () => {
-  const { id } = useParams();  // Capture the id param for editing a blog
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [cookies] = useCookies(['role']);
+  const [blogData, setBlogData] = useState(null);
 
-  const [blogData, setBlogData] = useState(null); // State to hold fetched blog data
-
-  // If editing, fetch the blog content, if not, form is empty
   useEffect(() => {
-    if (id) {
-      // Fetch blog data if editing an existing blog
-      fetch(`http://localhost:5000/api/blogs/${id}`)
-        .then((response) => response.json())
-        .then((data) => setBlogData(data))
-        .catch((error) => console.error('Error fetching blog:', error));
+    if (cookies.role !== 'admin') {
+      navigate('/');
     }
+  }, [cookies.role, navigate]);
+
+  useEffect(() => {
+    const fetchBlogData = async () => {
+      try {
+        if (id) {
+          const response = await apiRequest({
+            endpoint: `/blogs/${id}`,
+            method: 'GET',
+          });
+          setBlogData(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching blog:', error);
+      }
+    };
+
+    fetchBlogData();
   }, [id]);
 
-  // Formik setup
   const formik = useFormik({
     initialValues: {
-      title: blogData?.title || '',  // Pre-fill if editing, otherwise empty
-      content: blogData?.content || '',  // Pre-fill if editing, otherwise empty
+      title: blogData?.title || '',
+      content: blogData?.content || '',
     },
+    enableReinitialize: true, 
     validationSchema: Yup.object({
       title: Yup.string().required('Title is required'),
       content: Yup.string().required('Content is required'),
     }),
     onSubmit: async (values) => {
-      const url = id
-        ? `http://localhost:5000/api/blogs/${id}`  // Edit blog URL if ID exists
-        : 'http://localhost:5000/api/blogs';  // Add new blog URL if no ID
-
-      const method = id ? 'PUT' : 'POST';  // Use PUT for editing, POST for adding
-
+      const endpoint = id ? `/${id}` : '/';
+      const method = id ? 'PUT' : 'POST';
+      const header = {
+        token: cookies.token
+    }
       try {
-        const response = await fetch(url, {
+        const response = await apiRequest({
+          endpoint,
           method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
+          header,
+          body: values,
         });
 
-        const data = await response.json();
-        console.log('Blog saved:', data);
-        navigate('/'); // Navigate to the home page after success
+        console.log('Blog saved:', response.data);
+        navigate('/');
       } catch (error) {
         console.error('Error submitting blog:', error);
       }
     },
   });
-
-//   if (id && !blogData) {
-//     return <div>Loading...</div>;
-//   }
 
   return (
     <form onSubmit={formik.handleSubmit} className="max-w-lg mx-auto mt-4">
