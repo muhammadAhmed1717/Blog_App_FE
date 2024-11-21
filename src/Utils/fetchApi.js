@@ -1,6 +1,7 @@
 export const apiRequest = async ({ endpoint, method, token , body }) => {
     const baseURL = 'http://localhost:5000';
     console.log('BASE URL: ', baseURL);
+    console.log('CURRENT URL: ', `${baseURL}${endpoint}`)
     try {
       const options = {
         method,

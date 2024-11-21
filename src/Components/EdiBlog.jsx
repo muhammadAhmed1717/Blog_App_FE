@@ -22,7 +22,7 @@ const EditBlogPage = () => {
       try {
         if (id) {
           const response = await apiRequest({
-            endpoint: `/blogs/${id}`,
+            endpoint: `/${id}`,
             method: 'GET',
           });
           setBlogData(response.data);
@@ -50,6 +50,7 @@ const EditBlogPage = () => {
       const method = id ? 'PUT' : 'POST';
       const token = cookies.token
       try {
+        console.log('Body: ', values);
         const response = await apiRequest({
           endpoint,
           method,
@@ -91,7 +92,7 @@ const EditBlogPage = () => {
           value={formik.values.content}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
-          className="w-full p-2 mt-2 border rounded"
+          className="w-full p-2 mt-2 border rounded h-[250px]"
         />
         {formik.touched.content && formik.errors.content && (
           <p className="text-red-500 text-sm">{formik.errors.content}</p>
